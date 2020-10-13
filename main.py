@@ -93,13 +93,17 @@ if __name__ == '__main__':
 
         children_left = ga_ppl.mutate(children)
 
-        ppl_left, maximum = ga_ppl.evolve(
+        ppl_left, ppl_dead, maximum, minimum, threshold = ga_ppl.evolve(
             parents=ga_ppl.DNA_set, children=children_left)
         if ga_ppl.evolve_rate >= 0.1:
             ga_ppl.evolve_rate -= 0.01
 
         print('当前种群总数: {}'.format(len(ppl_left)))
+        print('淘汰种群数: {}'.format(len(ppl_dead)))
         print('当前最优适应度: {}'.format(maximum))
+        print('当前最低适应度: {}'.format(minimum))
+        print('当前的阈值为: {}'.format(threshold))
+        
         DNA = ga_ppl.get_DNA(address='output.csv')
         gen += 1
         if len(ga_ppl.match_DNA) == ga_ppl.output_size:
@@ -113,4 +117,5 @@ if __name__ == '__main__':
     #  crossover里没有判断是否出现重复的核苷酸
     #  解决方案1：杀死有重复核苷酸的DNA
     #  解决方案2：改变通过rule判断的方式
-    #  *** 依然没有处理多面手的问题 ***
+    #  *** 依然没有处理多面手的问题 *** 
+    #  依然存在一个问题：种群数会在某一时刻骤减

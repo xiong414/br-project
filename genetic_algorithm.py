@@ -161,7 +161,7 @@ class GA_ppl(object):
             threhold = (maximum - minimum) * (1 - evolve_rate)
             threhold += minimum
 
-            return threhold, maximum
+            return threhold, maximum, minimum
 
         ppl_merge = []
         fitness_list = []
@@ -172,16 +172,20 @@ class GA_ppl(object):
             ppl_merge.append(c)
             fitness_list.append(self.get_fitness(c))
 
-        threshold, maximum = get_threshold(fitness_list, self.evolve_rate)
+        threshold, maximum, minimum = get_threshold(fitness_list, self.evolve_rate)
 
         ppl_left = []
+        ppl_dead = []
+        # 这里有个bug会诱发退化
         for ppl in ppl_merge:
             if self.get_fitness(ppl) >= threshold and len(ppl_left) < 2000:
                 ppl_left.append(ppl)
                 if self.get_fitness(ppl) == self.DNA_length:
                     self.match_DNA.append(ppl)
+            else:
+                ppl_dead.append(ppl)
         self.DNA_set = ppl_left
-        return ppl_left, maximum
+        return ppl_left, ppl_dead, maximum, minimum, threshold
 
     def get_DNA(self, address):
         # output_DNA = []
