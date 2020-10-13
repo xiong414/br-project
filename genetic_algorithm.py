@@ -29,6 +29,7 @@ class GA_ppl(object):
         self.match_DNA = []
         self.init_rule()
         self.init_ppl()
+        self.w = list(np.zeros(shape=(1, self.DNA_length), dtype=int)[0])
 
     def init_rule(self):
         self.rule = []
@@ -141,17 +142,48 @@ class GA_ppl(object):
         return children
 
     def mutate(self, children):
-        def nucleotide_exchange(DNA):
-            m, n = np.random.choice(DNA, size=2, replace=False)
+        # 两种类型的概率分布
+        def softmax(fitness_list):
+            softmax_list = []
+            exp_sum = 0
+            # print(fitness_list)
+            for i in fitness_list:
+                exp_sum += math.exp(i)
+            for j in fitness_list:
+                softmax_list.append(math.exp(j) / exp_sum)
+            return softmax_list
+
+        def calc_prob(fitness_list):
+            prob_list = []
+            for i in fitness_list:
+                prob_list.append(i / sum(fitness_list))
+            return prob_list
+
+        def nucleotide_exchange(DNA, w_list):
+            # 这里未给p赋值，所以p是等概率
+            # m, n = np.random.choice(DNA, size=2, replace=False)
+            p_list = softmax(w_list)
+            m, n = np.random.choice(DNA, size=2, replace=False, p=p_list)
             mark1, mark2 = DNA.index(m), DNA.index(n)
             DNA[mark1], DNA[mark2] = n, m
-            return DNA
+            return DNA, m, n
 
+        # 这里的w是generation内的w
+        # 在当前generation内推荐在pm,pn处发生mutate
+        w = self.w
+        print('当前的w向量为: \n', w)
         for child, idx in zip(children, range(len(children))):
             r = np.random.rand()
             if r < self.mutation_rate:
-                child_new = nucleotide_exchange(child)
+                child_new, m, n = nucleotide_exchange(child, w)
+                old_fitness = self.get_fitness(child)
                 children[idx] = child_new
+                new_fitness = self.get_fitness(child_new)
+                if new_fitness > old_fitness:
+                    w[child.index(m)] += 1
+                    w[child.index(n)] += 1
+                    self.w[child.index(m)] -= 1
+                    self.w[child.index(n)] -= 1
         return children
 
     def evolve(self, parents, children):

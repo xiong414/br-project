@@ -101,12 +101,16 @@ if __name__ == '__main__':
         elif ga_ppl.evolve_rate >= 0.2:
             ga_ppl.evolve_rate -= 0.01
 
+        if max_count >= 50 and ga_ppl.mutation_rate <= 0.9:
+            ga_ppl.mutation_rate += 0.01
+
         print('当前种群总数: {}'.format(len(ppl_left)))
         print('淘汰种群数: {}'.format(len(ppl_dead)))
         print('当前最优适应度: {}, 个数为: {}'.format(maximum, max_count))
         print('当前最低适应度: {}'.format(minimum))
         print('当前的阈值为: {:.2f}'.format(threshold))
         print('当前的进化率: {:.2f}'.format(ga_ppl.evolve_rate))
+        print('当前的变异率: {:.2f}'.format(ga_ppl.mutation_rate))
 
         DNA = ga_ppl.get_DNA(address='output.csv')
         gen += 1
