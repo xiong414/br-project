@@ -189,6 +189,13 @@ class GA_ppl(object):
                     self.match_DNA.append(ppl)
             else:
                 ppl_dead.append(ppl)
+        # 处理只剩下一个个体的bug
+        if len(ppl_left) == 1:
+            print('***触发防灭绝保护***')
+            ppl_left.append(ppl_left[0])
+            ppl_left.append(ppl_merge[1])
+            ppl_left.append(ppl_merge[2])
+
         self.DNA_set = ppl_left
         return ppl_left, ppl_dead, maximum, max_count, minimum, threshold
 

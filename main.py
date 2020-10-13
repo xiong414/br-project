@@ -78,7 +78,7 @@ if __name__ == '__main__':
 
     generation_ppl_max = 65
 
-    ga_ppl = GA_ppl(ppl_size=200,
+    ga_ppl = GA_ppl(ppl_size=100,
                     evolve_rate=0.75,
                     mutation_rate=0.2,
                     walker_step=0.01,
@@ -95,9 +95,10 @@ if __name__ == '__main__':
 
         ppl_left, ppl_dead, maximum, max_count, minimum, threshold = ga_ppl.evolve(
             parents=ga_ppl.DNA_set, children=children_left)
-        if ga_ppl.evolve_rate >= 0.2:
+
+        if ga_ppl.evolve_rate >= 0.1 and max_count >= 5 and float(maximum - threshold) >= 1.0:
             ga_ppl.evolve_rate -= 0.01
-        elif ga_ppl.evolve_rate >= 0.1 and max_count >= 30 and maximum - threshold >= 1:
+        elif ga_ppl.evolve_rate >= 0.2:
             ga_ppl.evolve_rate -= 0.01
 
         print('当前种群总数: {}'.format(len(ppl_left)))
