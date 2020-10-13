@@ -97,6 +97,8 @@ if __name__ == '__main__':
             parents=ga_ppl.DNA_set, children=children_left)
         if ga_ppl.evolve_rate >= 0.2:
             ga_ppl.evolve_rate -= 0.01
+        elif ga_ppl.evolve_rate >= 0.1 and max_count >= 30 and maximum - threshold >= 1:
+            ga_ppl.evolve_rate -= 0.01
 
         print('当前种群总数: {}'.format(len(ppl_left)))
         print('淘汰种群数: {}'.format(len(ppl_dead)))
