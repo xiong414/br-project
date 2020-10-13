@@ -120,6 +120,7 @@ class GA_ppl(object):
             f_prob, m_prob = 0.5, 0.5
             walker = float(self.walker_step)
 
+            # 进化过程：随机从父母那边选取核苷酸，构成孩子的DNA
             while True:
                 f = father[0]
                 m = mother[0]
@@ -182,7 +183,7 @@ class GA_ppl(object):
         ppl_merge.sort(key=self.get_fitness, reverse=True)
         # 这里有个bug会诱发退化
         for ppl in ppl_merge:
-            if self.get_fitness(ppl) >= threshold and len(ppl_left) < 2000:
+            if self.get_fitness(ppl) >= threshold and len(ppl_left) < 1000:
                 ppl_left.append(ppl)
                 if self.get_fitness(ppl) == self.DNA_length:
                     self.match_DNA.append(ppl)

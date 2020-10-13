@@ -80,8 +80,8 @@ if __name__ == '__main__':
 
     ga_ppl = GA_ppl(ppl_size=200,
                     evolve_rate=0.75,
-                    mutation_rate=0.75,
-                    walker_step=0.02,
+                    mutation_rate=0.2,
+                    walker_step=0.01,
                     dependence=dependence_outer,
                     output_size=100)
 
@@ -126,5 +126,5 @@ if __name__ == '__main__':
     #  其实本质和上一个bug是一样的，主要在于如何控制evolve_rate
     # TODO:
     #  给crossover和mutate进行改进，优化交叉和变异的过程
-    #  是的优化和变异的效率提升，交叉的过程优先学习那些能提升fitness的变交叉过程
+    #  使得优化和变异的效率得到提升，交叉的过程优先学习那些能提升fitness的变交叉过程
     #  变异也是一样的，这里就需要存储那些使fitness增加的crossover和mutate
