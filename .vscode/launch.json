@@ -5,11 +5,13 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: Current File",
+            "name": "Python",
             "type": "python",
             "request": "launch",
-            "pythonPath": "/Library/Frameworks/Python.framework/Versions/3.6/bin/python3",
+            "stopOnEntry": false,
+            "pythonPath": "/Library/Frameworks/Python.framework/Versions/3.6/bin/python3.6",
             "program": "${file}",
+            "cwd": "${workspaceRoot}",
             "console": "integratedTerminal"
         }
     ]

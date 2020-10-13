@@ -176,6 +176,7 @@ class GA_ppl(object):
 
         ppl_left = []
         ppl_dead = []
+        ppl_merge.sort(key=self.get_fitness, reverse=True)
         # 这里有个bug会诱发退化
         for ppl in ppl_merge:
             if self.get_fitness(ppl) >= threshold and len(ppl_left) < 2000:
