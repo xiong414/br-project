@@ -103,7 +103,7 @@ if __name__ == '__main__':
         print('当前最优适应度: {}, 个数为: {}'.format(maximum, max_count))
         print('当前最低适应度: {}'.format(minimum))
         print('当前的阈值为: {:.2f}'.format(threshold))
-        print('当前的进化率: {}'.format(ga_ppl.evolve_rate))
+        print('当前的进化率: {:.2f}'.format(ga_ppl.evolve_rate))
 
         DNA = ga_ppl.get_DNA(address='output.csv')
         gen += 1
