@@ -95,7 +95,7 @@ if __name__ == '__main__':
 
         ppl_left, ppl_dead, maximum, max_count, minimum, threshold = ga_ppl.evolve(
             parents=ga_ppl.DNA_set, children=children_left)
-        if ga_ppl.evolve_rate >= 0.1:
+        if ga_ppl.evolve_rate >= 0.2:
             ga_ppl.evolve_rate -= 0.01
 
         print('当前种群总数: {}'.format(len(ppl_left)))
@@ -119,6 +119,12 @@ if __name__ == '__main__':
     #  解决方案1：杀死有重复核苷酸的DNA
     #  解决方案2：改变通过rule判断的方式
     #  *** 依然没有处理多面手的问题 ***
-    #  依然存在一个问题：种群数会在某一时刻骤减
+    #  BUG：种群数会在某一时刻骤减
     #  出现种群数骤减的原因是由于不断上升的进化率
     #  但是种群中却没有进化出更好的个体
+    #  BUG: 种群最后只剩下1个个体，导致种群绝育
+    #  其实本质和上一个bug是一样的，主要在于如何控制evolve_rate
+    # TODO:
+    #  给crossover和mutate进行改进，优化交叉和变异的过程
+    #  是的优化和变异的效率提升，交叉的过程优先学习那些能提升fitness的变交叉过程
+    #  变异也是一样的，这里就需要存储那些使fitness增加的crossover和mutate
