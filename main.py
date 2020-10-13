@@ -80,7 +80,7 @@ if __name__ == '__main__':
 
     ga_ppl = GA_ppl(ppl_size=100,
                     evolve_rate=0.75,
-                    mutation_rate=0.2,
+                    mutation_rate=0.4,
                     walker_step=0.01,
                     dependence=dependence_outer,
                     output_size=100)
