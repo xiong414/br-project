@@ -172,8 +172,11 @@ class GA_ppl(object):
             ppl_merge.append(c)
             fitness_list.append(self.get_fitness(c))
 
-        threshold, maximum, minimum = get_threshold(fitness_list, self.evolve_rate)
+        threshold, maximum, minimum = get_threshold(
+            fitness_list, self.evolve_rate)
 
+        # 返回fitness=maximum的种群个数
+        max_count = fitness_list.count(maximum)
         ppl_left = []
         ppl_dead = []
         ppl_merge.sort(key=self.get_fitness, reverse=True)
@@ -186,7 +189,7 @@ class GA_ppl(object):
             else:
                 ppl_dead.append(ppl)
         self.DNA_set = ppl_left
-        return ppl_left, ppl_dead, maximum, minimum, threshold
+        return ppl_left, ppl_dead, maximum, max_count, minimum, threshold
 
     def get_DNA(self, address):
         # output_DNA = []

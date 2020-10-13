@@ -93,16 +93,17 @@ if __name__ == '__main__':
 
         children_left = ga_ppl.mutate(children)
 
-        ppl_left, ppl_dead, maximum, minimum, threshold = ga_ppl.evolve(
+        ppl_left, ppl_dead, maximum, max_count, minimum, threshold = ga_ppl.evolve(
             parents=ga_ppl.DNA_set, children=children_left)
         if ga_ppl.evolve_rate >= 0.1:
             ga_ppl.evolve_rate -= 0.01
 
         print('当前种群总数: {}'.format(len(ppl_left)))
         print('淘汰种群数: {}'.format(len(ppl_dead)))
-        print('当前最优适应度: {}'.format(maximum))
+        print('当前最优适应度: {}, 个数为: {}'.format(maximum, max_count))
         print('当前最低适应度: {}'.format(minimum))
         print('当前的阈值为: {:.2f}'.format(threshold))
+        print('当前的进化率: {}'.format(ga_ppl.evolve_rate))
 
         DNA = ga_ppl.get_DNA(address='output.csv')
         gen += 1
@@ -119,3 +120,5 @@ if __name__ == '__main__':
     #  解决方案2：改变通过rule判断的方式
     #  *** 依然没有处理多面手的问题 ***
     #  依然存在一个问题：种群数会在某一时刻骤减
+    #  出现种群数骤减的原因是由于不断上升的进化率
+    #  但是种群中却没有进化出更好的个体
