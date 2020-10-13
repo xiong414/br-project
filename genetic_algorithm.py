@@ -203,7 +203,7 @@ class GA_ppl(object):
         with open(address, 'w', encoding='utf8') as f:
             f.writelines(str(self.DNA_length) + ',' + str(len(self.match_DNA)))
             for dna in self.match_DNA:
-                f.writelines(dna)
+                f.writelines(str(dna))
 
 
 class GA(object):
