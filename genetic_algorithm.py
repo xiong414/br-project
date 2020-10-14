@@ -13,13 +13,8 @@ logging.basicConfig(level=logging.NOTSET)
 
 
 class GA_ppl(object):
-    def __init__(self,
-                 ppl_size,
-                 evolve_rate,
-                 mutation_rate,
-                 walker_step,
-                 dependence,
-                 output_size):
+    def __init__(self, ppl_size, evolve_rate, mutation_rate, walker_step,
+                 dependence, output_size):
         self.ppl_size = ppl_size
         self.evolve_rate = evolve_rate
         self.mutation_rate = mutation_rate
@@ -29,11 +24,12 @@ class GA_ppl(object):
         self.match_DNA = []
         self.init_rule()
         self.init_ppl()
+        self.w = list(np.zeros(shape=(1, self.DNA_length), dtype=int)[0])
 
     def init_rule(self):
         self.rule = []
-        max_length = max(len(self.dependence[i])
-                         for i in range(len(self.dependence)))
+        max_length = max(
+            len(self.dependence[i]) for i in range(len(self.dependence)))
         for round in range(1, max_length):
             for stack in self.dependence:
                 try:
@@ -101,8 +97,10 @@ class GA_ppl(object):
         prob_list = softmax(fitness_list=fitness_list)
         # prob_list = calc_prob(fitness_list=fitness_list)
         DNA_set_idx = [i for i in range(len(DNA_set))]
-        idx = np.random.choice(DNA_set_idx, size=len(
-            DNA_set), replace=False, p=prob_list)
+        idx = np.random.choice(DNA_set_idx,
+                               size=len(DNA_set),
+                               replace=False,
+                               p=prob_list)
         for i in range(0, len(idx), 2):
             try:
                 select_list.append([DNA_set[idx[i]], DNA_set[idx[i + 1]]])
@@ -141,17 +139,48 @@ class GA_ppl(object):
         return children
 
     def mutate(self, children):
-        def nucleotide_exchange(DNA):
-            m, n = np.random.choice(DNA, size=2, replace=False)
+        # 两种类型的概率分布
+        def softmax(fitness_list):
+            softmax_list = []
+            exp_sum = 0
+            # print(fitness_list)
+            for i in fitness_list:
+                exp_sum += math.exp(i)
+            for j in fitness_list:
+                softmax_list.append(math.exp(j) / exp_sum)
+            return softmax_list
+
+        def calc_prob(fitness_list):
+            prob_list = []
+            for i in fitness_list:
+                prob_list.append(i / sum(fitness_list))
+            return prob_list
+
+        def nucleotide_exchange(DNA, w_list):
+            # 这里未给p赋值，所以p是等概率
+            # m, n = np.random.choice(DNA, size=2, replace=False)
+            p_list = softmax(w_list)
+            m, n = np.random.choice(DNA, size=2, replace=False, p=p_list)
             mark1, mark2 = DNA.index(m), DNA.index(n)
             DNA[mark1], DNA[mark2] = n, m
-            return DNA
+            return DNA, m, n
 
+        # 这里的w是generation内的w
+        # 在当前generation内推荐在pm,pn处发生mutate
+        w = self.w
+        print('当前的w向量为: \n', w)
         for child, idx in zip(children, range(len(children))):
             r = np.random.rand()
             if r < self.mutation_rate:
-                child_new = nucleotide_exchange(child)
+                child_new, m, n = nucleotide_exchange(child, w)
+                old_fitness = self.get_fitness(child)
                 children[idx] = child_new
+                new_fitness = self.get_fitness(child_new)
+                if new_fitness > old_fitness:
+                    w[child.index(m)] += 1
+                    w[child.index(n)] += 1
+                    self.w[child.index(m)] -= 1
+                    self.w[child.index(n)] -= 1
         return children
 
     def evolve(self, parents, children):
@@ -173,8 +202,8 @@ class GA_ppl(object):
             ppl_merge.append(c)
             fitness_list.append(self.get_fitness(c))
 
-        threshold, maximum, minimum = get_threshold(
-            fitness_list, self.evolve_rate)
+        threshold, maximum, minimum = get_threshold(fitness_list,
+                                                    self.evolve_rate)
 
         # 返回fitness=maximum的种群个数
         max_count = fitness_list.count(maximum)
@@ -189,6 +218,13 @@ class GA_ppl(object):
                     self.match_DNA.append(ppl)
             else:
                 ppl_dead.append(ppl)
+        # 处理只剩下一个个体的bug
+        if len(ppl_left) == 1:
+            print('***触发防灭绝保护***')
+            ppl_left.append(ppl_left[0])
+            ppl_left.append(ppl_merge[1])
+            ppl_left.append(ppl_merge[2])
+
         self.DNA_set = ppl_left
         return ppl_left, ppl_dead, maximum, max_count, minimum, threshold
 
@@ -204,17 +240,12 @@ class GA_ppl(object):
         with open(address, 'w', encoding='utf8') as f:
             f.writelines(str(self.DNA_length) + ',' + str(len(self.match_DNA)))
             for dna in self.match_DNA:
-                f.writelines(str(dna))
+                f.writelines(str(dna) + '\n')
 
 
 class GA(object):
-    def __init__(self,
-                 employees_combination,
-                 ppl_size,
-                 time_cost,
-                 dependence_inner,
-                 dependence_outer,
-                 walker_step):
+    def __init__(self, employees_combination, ppl_size, time_cost,
+                 dependence_inner, dependence_outer, walker_step):
         self.ppl_size = ppl_size
         self.timecost = time_cost
         self.dependence_outer = dependence_outer
@@ -233,8 +264,9 @@ class GA(object):
         self.inner_module = {}
 
         # Outer Dependence
-        max_length = max(len(self.dependence_outer[i]) for i in range(
-            len(self.dependence_outer)))
+        max_length = max(
+            len(self.dependence_outer[i])
+            for i in range(len(self.dependence_outer)))
         for round in range(1, max_length):
             for stack in self.dependence_outer:
                 try:
@@ -253,7 +285,8 @@ class GA(object):
             self.inner_module[key] = []
             for stack in val:
                 for round in range(1, len(stack)):
-                    if stack[round] not in self.inner_module[key] and stack[round] != 0:
+                    if stack[round] not in self.inner_module[
+                            key] and stack[round] != 0:
                         module = Module(stack[round])
                         self.inner_module[key].append(module)
                     id_former = stack[round - 1]
@@ -261,8 +294,8 @@ class GA(object):
                         index_ = self.inner_module[key].index(stack[round])
                         self.inner_module[key][index_].add_dep(
                             ID_former=id_former)
-                        time = self.timecost[(
-                            key, self.inner_module[key][index_])]
+                        time = self.timecost[(key,
+                                              self.inner_module[key][index_])]
                         self.inner_module[key][index_].add_time(time=time)
                         self.inner_module[key][index_].add_parent(key)
 
@@ -315,7 +348,8 @@ class GA(object):
                             em_buffer.DNA = DNA_
                             # 防止某个员工的工作顺序表中含有不存在的工作，例如2.2
                             for d in DNA:
-                                if em.work_type_num[0] not in self.inner_module[d]:
+                                if em.work_type_num[
+                                        0] not in self.inner_module[d]:
                                     DNA[DNA.index(d)] = Module(0)
                                     DNA_[DNA_.index(d)] = Module(0)
                             break
@@ -368,7 +402,8 @@ class GA(object):
 
                 for a in a_list:
                     # 藏着问题：多面手 em.work_type_num[0]
-                    if int(a.parent) == int(stack_top) and int(a.ID) == int(em.work_type_num[0]):
+                    if int(a.parent) == int(stack_top) and int(a.ID) == int(
+                            em.work_type_num[0]):
                         # and a not in mission_todo
                         if a in mission_todo:
                             a_ = mission_todo[mission_todo.index(a)]
@@ -389,17 +424,19 @@ class GA(object):
                 fitness += 0
             for mission in mission_todo:
                 try:
-                    inner_module[mission.parent][inner_module[mission.parent].index(
-                        mission)].time -= time_min
+                    inner_module[mission.parent][inner_module[
+                        mission.parent].index(mission)].time -= time_min
                 except:
                     pass
 
-                if inner_module[mission.parent][inner_module[mission.parent].index(mission)].time == 0:
+                if inner_module[mission.parent][inner_module[
+                        mission.parent].index(mission)].time == 0:
                     inner_module[mission.parent].remove(mission)
                     for em in group_list:
                         try:
                             for dna in em.DNA:
-                                if dna == mission.parent and em.work_type_num[0] == mission:
+                                if dna == mission.parent and em.work_type_num[
+                                        0] == mission:
                                     em.DNA.pop(em.DNA.index(dna))
                         except:
                             continue
@@ -462,7 +499,8 @@ class GA(object):
 
                 for a in a_list:
                     # 藏着问题：多面手 em.work_type_num[0]
-                    if int(a.parent) == int(stack_top) and int(a.ID) == int(em.work_type_num[0]):
+                    if int(a.parent) == int(stack_top) and int(a.ID) == int(
+                            em.work_type_num[0]):
                         # and a not in mission_todo
                         if a in mission_todo:
                             a_ = mission_todo[mission_todo.index(a)]
@@ -494,18 +532,20 @@ class GA(object):
                 fitness += 0
             for mission in mission_todo:
                 try:
-                    inner_module[mission.parent][inner_module[mission.parent].index(
-                        mission)].time -= time_min
+                    inner_module[mission.parent][inner_module[
+                        mission.parent].index(mission)].time -= time_min
                 except:
                     for em in group_list:
                         print(em.work_type_num, em.DNA)
 
-                if inner_module[mission.parent][inner_module[mission.parent].index(mission)].time == 0:
+                if inner_module[mission.parent][inner_module[
+                        mission.parent].index(mission)].time == 0:
                     inner_module[mission.parent].remove(mission)
                     for em in group_list:
                         try:
                             for dna in em.DNA:
-                                if dna == mission.parent and em.work_type_num[0] == mission:
+                                if dna == mission.parent and em.work_type_num[
+                                        0] == mission:
                                     em.DNA.pop(em.DNA.index(dna))
                         except:
                             continue
@@ -558,8 +598,9 @@ class GA(object):
             f_prob, m_prob = 0.5, 0.5
             walker = float(self.walker_step)
             for f_em, m_em in zip(father.group_list, mother.group_list):
-                child_em = np.random.choice(
-                    [f_em, m_em], size=1, p=[f_prob, m_prob])[0]
+                child_em = np.random.choice([f_em, m_em],
+                                            size=1,
+                                            p=[f_prob, m_prob])[0]
                 if child_em == f_em:
                     f_prob -= walker
                     m_prob += walker

@@ -78,9 +78,9 @@ if __name__ == '__main__':
 
     generation_ppl_max = 65
 
-    ga_ppl = GA_ppl(ppl_size=200,
+    ga_ppl = GA_ppl(ppl_size=100,
                     evolve_rate=0.75,
-                    mutation_rate=0.2,
+                    mutation_rate=0.4,
                     walker_step=0.01,
                     dependence=dependence_outer,
                     output_size=100)
@@ -95,8 +95,14 @@ if __name__ == '__main__':
 
         ppl_left, ppl_dead, maximum, max_count, minimum, threshold = ga_ppl.evolve(
             parents=ga_ppl.DNA_set, children=children_left)
-        if ga_ppl.evolve_rate >= 0.2:
+
+        if ga_ppl.evolve_rate >= 0.1 and max_count >= 5 and float(maximum - threshold) >= 1.0:
             ga_ppl.evolve_rate -= 0.01
+        elif ga_ppl.evolve_rate >= 0.2:
+            ga_ppl.evolve_rate -= 0.01
+
+        if max_count >= 50 and ga_ppl.mutation_rate <= 0.9:
+            ga_ppl.mutation_rate += 0.01
 
         print('当前种群总数: {}'.format(len(ppl_left)))
         print('淘汰种群数: {}'.format(len(ppl_dead)))
@@ -104,6 +110,7 @@ if __name__ == '__main__':
         print('当前最低适应度: {}'.format(minimum))
         print('当前的阈值为: {:.2f}'.format(threshold))
         print('当前的进化率: {:.2f}'.format(ga_ppl.evolve_rate))
+        print('当前的变异率: {:.2f}'.format(ga_ppl.mutation_rate))
 
         DNA = ga_ppl.get_DNA(address='output.csv')
         gen += 1
