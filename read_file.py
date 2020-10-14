@@ -4,6 +4,8 @@
 # @Contact: xiong3219@icloud.com
 
 import csv
+import re
+
 
 def read_dependence(file, data_type):
     with open(file, 'r', encoding='utf-8') as f:
@@ -39,3 +41,22 @@ def read_dependence(file, data_type):
             return time_cost
 
 
+def read_output(file):
+    with open(file, 'r', encoding='utf-8') as f:
+        raw_data = f.read()
+        data_nohead = raw_data[6:]
+        # print(data)
+        data_ = data_nohead.split('[')
+        data_str = []
+        for d in data_:
+            if len(d) == 0:
+                data_.remove(d)
+            else:
+                d_ = d.strip(']')
+                data_str.append(d_)
+        data = []
+        for d_str in data_str:
+            d = list(d_str)
+            # print(d_str)
+        print(set(data_str))
+    # print(data_str)

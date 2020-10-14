@@ -229,18 +229,12 @@ class GA_ppl(object):
         return ppl_left, ppl_dead, maximum, max_count, minimum, threshold
 
     def get_DNA(self, address):
-        # output_DNA = []
-        # if len(self.match_DNA) >= self.output_size:
-        #     for o in range(self.output_size):
-        #         output_DNA.append(self.match_DNA[o])
-        #     return output_DNA
-        # else:
-        #     print('DNA生成量不足 {}/{}'.format(len(self.match_DNA), self.output_size))
-        #     return self.match_DNA
+        DNA_set = set(self.match_DNA)
         with open(address, 'w', encoding='utf8') as f:
-            f.writelines(str(self.DNA_length) + ',' + str(len(self.match_DNA)))
-            for dna in self.match_DNA:
+            for dna in DNA_set:
                 f.writelines(str(dna) + '\n')
+                print('***** GET DNA *****')
+        return DNA_set
 
 
 class GA(object):

@@ -9,23 +9,23 @@ import copy
 
 if __name__ == '__main__':
     # Initialize ALL Employees
-    employees_combination = ['P', 'D', 'F', 'B', 'T']
+    # employees_combination = ['P', 'D', 'F', 'B', 'T']
 
     # Read data
     # quest_address = './simplified_problem/'
-    quest_address = './complex_problem/'
-    time_cost = read_dependence(quest_address + 'time_cost.csv', 'time')
-    dependence_outer = read_dependence(
-        quest_address + 'dependence_outer.csv', 'outer')
-    dependence_inner = read_dependence(
-        quest_address + 'dependence_inner.csv', 'inner')
+    # quest_address = './complex_problem/'
+    # time_cost = read_dependence(quest_address + 'time_cost.csv', 'time')
+    # dependence_outer = read_dependence(
+    #     quest_address + 'dependence_outer.csv', 'outer')
+    # dependence_inner = read_dependence(
+    #     quest_address + 'dependence_inner.csv', 'inner')
 
     # Initialize Genetic Algorithm Model
-    ppl_size = 200
-    generation_max = 15
-    mutation_rate = 0.1
-    evolve_rate = 0.6
-    walker_step = 0.01
+    # ppl_size = 200
+    # generation_max = 15
+    # mutation_rate = 0.1
+    # evolve_rate = 0.6
+    # walker_step = 0.01
 
     # model_ga = GA(employees_combination=employees_combination,
     #               ppl_size=ppl_size,
@@ -76,14 +76,14 @@ if __name__ == '__main__':
     # print('最优种群的求解过程: ')
     # print(model_ga.get_fitness_test(group=best_group))
 
-    generation_ppl_max = 65
+    # --------------- DNA INITIALZATION ---------------
 
     ga_ppl = GA_ppl(ppl_size=100,
                     evolve_rate=0.75,
                     mutation_rate=0.4,
                     walker_step=0.01,
                     dependence=dependence_outer,
-                    output_size=100)
+                    output_size=10)
 
     gen = 0
     while True:
@@ -114,11 +114,15 @@ if __name__ == '__main__':
 
         DNA = ga_ppl.get_DNA(address='output.csv')
         gen += 1
-        if len(ga_ppl.match_DNA) == ga_ppl.output_size:
+        if len(DNA) == ga_ppl.output_size:
             break
 
     for dna in DNA:
         print(ga_ppl.get_fitness(dna), dna)
+
+    # --------------- READ OUTPUT ---------------
+    # output_address = 'output2.csv'
+    # read_output(output_address)
 
     # TODO:
     #  BUG:会在DNA中出现重复的核苷酸，出现的原因来自于crossover的过程
