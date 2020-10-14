@@ -322,6 +322,7 @@ class GA(object):
                 return False
 
     def initialize_population(self, em_combination):
+
         # Initialize the Population and DNA
         self.population = []
         for p in range(self.ppl_size):
@@ -349,7 +350,7 @@ class GA(object):
                             break
                     group.add_employee(em)
                     # print('got a employee!!!')
-                    print(em.DNA)
+                    # print(em.DNA)
                     group_buffer.add_employee(em_buffer)
 
                 fitness, key = self.get_fitness(group=group)
@@ -357,7 +358,7 @@ class GA(object):
                 group_buffer.fitness = copy.deepcopy(group.fitness)
                 if key:
                     self.population.append(group_buffer)
-                    print(p + 1, '/', self.ppl_size)
+                    # print(p + 1, '/', self.ppl_size)
                     # print('Append 1 group!', fitness, key)
                     break
                 else:
