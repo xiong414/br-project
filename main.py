@@ -21,8 +21,8 @@ if __name__ == '__main__':
                                        'inner')
 
     # Initialize Genetic Algorithm Model
-    ppl_size = 200
-    generation_max = 15
+    ppl_size = 150
+    generation_max = 24
     mutation_rate = 0.1
     evolve_rate = 0.6
     walker_step = 0.01
@@ -55,7 +55,7 @@ if __name__ == '__main__':
         else:
             print('无子代，无法变异')
 
-        evolve_rate = evolve_rate
+        evolve_rate -= 0.01
         # model_ga.evolve(parents=population_original, children=children_left, evolve_rate=evolve_rate)
         population_left, best_fitness, best_group = model_ga.evolve(
             parents=population_original,

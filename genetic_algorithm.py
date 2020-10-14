@@ -300,6 +300,9 @@ class GA(object):
         for key, val in self.inner_module.items():
             val.sort()
 
+    def load_path(self):
+        return 0
+
     def check_in(self, list1, list2):
         res = [False for i in list1 if i not in list2]
         if res:
@@ -322,47 +325,94 @@ class GA(object):
                 return False
 
     def initialize_population(self, em_combination):
-
-        # Initialize the Population and DNA
+        # New Method to Initialaize Population
         self.population = []
         for p in range(self.ppl_size):
+            # n = 0
             while True:
                 self.initialize_module()
-                outer_module = self.outer_module
-                group = Group(group_id=str(p))
-                group_buffer = Group(group_id=int(p))
+                # outer_module = copy.deepcopy(self.outer_module)
+                group = Group(group_id=int(p))
+                group_sub = Group(group_id=str(p))
                 for job in em_combination:
                     em = Employee(work_type=job)
-                    em_buffer = Employee(work_type=job)
-                    while True:
-                        DNA = list(outer_module)
-                        np.random.shuffle(DNA)
-                        if self.check_rule(DNA=DNA, module=outer_module):
-                            em.DNA = DNA
-                            DNA_ = copy.deepcopy(DNA)
-                            em_buffer.DNA = DNA_
-                            # 防止某个员工的工作顺序表中含有不存在的工作，例如2.2
-                            for d in DNA:
-                                if em.work_type_num[
-                                        0] not in self.inner_module[d]:
-                                    DNA[DNA.index(d)] = Module(0)
-                                    DNA_[DNA_.index(d)] = Module(0)
-                            break
+                    em_sub = Employee(work_type=job)
+                    DNA = []
+                    outer_module = copy.deepcopy(self.outer_module)
+                    for t in range(len(outer_module)):
+                        avail_outer = []
+                        for outer in outer_module:
+                            if len(outer.dependence) == 0:
+                                avail_outer.append(outer)
+                        choose_outer = np.random.choice(avail_outer,
+                                                        size=1,
+                                                        replace=False)[0]
+                        DNA.append(choose_outer)
+                        outer_module.remove(choose_outer)
+                        for outer_ in outer_module:
+                            try:
+                                outer_.del_dep(choose_outer)
+                            except:
+                                continue
+                    em.DNA = DNA
+                    DNA_sub = copy.deepcopy(DNA)
+                    em_sub.DNA = DNA_sub
                     group.add_employee(em)
-                    # print('got a employee!!!')
-                    # print(em.DNA)
-                    group_buffer.add_employee(em_buffer)
-
-                fitness, key = self.get_fitness(group=group)
-
-                group_buffer.fitness = copy.deepcopy(group.fitness)
+                    group_sub.add_employee(em_sub)
+                fitness, key = self.get_fitness(group=group_sub)
+                # n += 1
+                # print('\r', n, end='')
+                # print('\n', fitness, key, end='\n')
+                # print('*' * 10)
                 if key:
-                    self.population.append(group_buffer)
-                    # print(p + 1, '/', self.ppl_size)
-                    # print('Append 1 group!', fitness, key)
+                    # print(fitness, key)
+                    group.fitness = fitness
+                    self.population.append(group)
                     break
                 else:
                     continue
+        # print(len(self.population))
+
+        # Initialize the Population and DNA (Old Method)
+        # self.population = []
+        # for p in range(self.ppl_size):
+        #     while True:
+        #         self.initialize_module()
+        #         outer_module = self.outer_module
+        #         group = Group(group_id=str(p))
+        #         group_buffer = Group(group_id=int(p))
+        #         for job in em_combination:
+        #             em = Employee(work_type=job)
+        #             em_buffer = Employee(work_type=job)
+        #             while True:
+        #                 DNA = list(outer_module)
+        #                 np.random.shuffle(DNA)
+        #                 if self.check_rule(DNA=DNA, module=outer_module):
+        #                     em.DNA = DNA
+        #                     DNA_ = copy.deepcopy(DNA)
+        #                     em_buffer.DNA = DNA_
+        #                     # 防止某个员工的工作顺序表中含有不存在的工作，例如2.2
+        #                     for d in DNA:
+        #                         if em.work_type_num[
+        #                                 0] not in self.inner_module[d]:
+        #                             DNA[DNA.index(d)] = Module(0)
+        #                             DNA_[DNA_.index(d)] = Module(0)
+        #                     break
+        #             group.add_employee(em)
+        #             # print('got a employee!!!')
+        #             # print(em.DNA)
+        #             group_buffer.add_employee(em_buffer)
+
+        #         fitness, key = self.get_fitness(group=group)
+
+        #         group_buffer.fitness = copy.deepcopy(group.fitness)
+        #         if key:
+        #             self.population.append(group_buffer)
+        #             # print(p + 1, '/', self.ppl_size)
+        #             # print('Append 1 group!', fitness, key)
+        #             break
+        #         else:
+        #             continue
 
     def get_fitness(self, group):
         group_list = group.group_list
