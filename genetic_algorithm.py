@@ -6,10 +6,22 @@
 import copy
 import math
 import logging
+import itertools
 import numpy as np
 from work_object import Employee, Module, Group
 
 logging.basicConfig(level=logging.NOTSET)
+
+
+class cartesian(object):
+    def __init__(self):
+        self._data_list = []
+
+    def add_list(self, data=[]):
+        self._data_list.append(data)
+
+    def build(self):
+        return list(itertools.product(*self._data_list))
 
 
 class GA_ppl(object):
@@ -301,7 +313,38 @@ class GA(object):
             val.sort()
 
     def load_path(self):
-        return 0
+        logging.info('Loading the Paths...')
+        dependence_outer = copy.deepcopy(self.dependence_outer)
+        dependence_inner = copy.deepcopy(self.dependence_inner)
+
+        all_path = []
+        all_path_out = []
+        for path_out in dependence_outer:
+            all_path_out.append(path_out[1:])
+        for path_out in all_path_out:
+            product = cartesian()
+            for step in path_out:
+                # pre-operate the array
+                path_pre = copy.deepcopy(dependence_inner[step])
+                path_list = []
+                for path_p in range(len(path_pre)):
+                    path_pre[path_p] = path_pre[path_p][1:]
+                    while 0 in path_pre[path_p]:
+                        path_pre[path_p].remove(0)
+                    path = []
+                    for p in range(len(path_pre[path_p])):
+                        # path_pre[p] = str(step) + '.' + str(path_pre[p])
+                        path.append(str(step) + '.' + str(path_pre[path_p][p]))
+                    path_list.append(path)
+                product.add_list(path_list)
+            prodcut_out = product.build()
+            for p_o in prodcut_out:
+                path = []
+                for p_o_ in p_o:
+                    for p in p_o_:
+                        path.append(p)
+                all_path.append(path)
+        return all_path
 
     def check_in(self, list1, list2):
         res = [False for i in list1 if i not in list2]
@@ -715,6 +758,10 @@ class GA(object):
         for pop in population_merge:
             if pop.fitness < threshold:
                 population_left.append(pop)
+        if len(population_left) <= 1:
+            print('***触发防灭绝保护***')
+            population_left.append(population_merge[0])
+            population_left.append(population_merge[1])
         self.population = population_left
         self.initialize_module
         return population_left, minimum, best_group

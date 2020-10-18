@@ -21,10 +21,10 @@ if __name__ == '__main__':
                                        'inner')
 
     # Initialize Genetic Algorithm Model
-    ppl_size = 150
-    generation_max = 24
-    mutation_rate = 0.1
-    evolve_rate = 0.6
+    ppl_size = 20
+    generation_max = 40
+    mutation_rate = 0.3
+    evolve_rate = 0.7
     walker_step = 0.01
 
     model_ga = GA(employees_combination=employees_combination,
@@ -34,50 +34,53 @@ if __name__ == '__main__':
                   dependence_outer=dependence_outer,
                   walker_step=walker_step)
 
-    for generation in range(1, generation_max + 1):
-        print('-' * 20, 'generation', generation, '-' * 20)
-        population_original = copy.deepcopy(model_ga.population)
+    all_path = model_ga.load_path()
+    print(len(all_path))
 
-        select_list = model_ga.select(model_ga.population)
-        children_origin = model_ga.crossover(select_list=select_list)
+    # for generation in range(1, generation_max + 1):
+    #     print('-' * 20, 'generation', generation, '-' * 20)
+    #     population_original = copy.deepcopy(model_ga.population)
 
-        fertility_rate = 100 * len(children_origin) / (
-            len(population_original) / 2)
-        print('生育率: {:.2f}%'.format(fertility_rate))
+    #     select_list = model_ga.select(model_ga.population)
+    #     children_origin = model_ga.crossover(select_list=select_list)
 
-        mutation_rate = mutation_rate
-        children_left = model_ga.mutate(children_origin=children_origin,
-                                        mutation_rate=mutation_rate)
+    #     fertility_rate = 100 * len(children_origin) / (
+    #         len(population_original) / 2)
+    #     print('生育率: {:.2f}%'.format(fertility_rate))
 
-        if len(children_origin) != 0:
-            print('变异存活率: {:.2f}%'.format(100 * len(children_left) /
-                                          len(children_origin)))
-        else:
-            print('无子代，无法变异')
+    #     mutation_rate = mutation_rate
+    #     children_left = model_ga.mutate(children_origin=children_origin,
+    #                                     mutation_rate=mutation_rate)
 
-        evolve_rate -= 0.01
-        # model_ga.evolve(parents=population_original, children=children_left, evolve_rate=evolve_rate)
-        population_left, best_fitness, best_group = model_ga.evolve(
-            parents=population_original,
-            children=children_left,
-            evolve_rate=evolve_rate)
+    #     if len(children_origin) != 0:
+    #         print('变异存活率: {:.2f}%'.format(100 * len(children_left) /
+    #                                       len(children_origin)))
+    #     else:
+    #         print('无子代，无法变异')
 
-        population_diff = -(len(population_original) - len(population_left))
-        print('种群数增减量: {}'.format(population_diff))
-        print('当前种群总数: {}'.format(len(population_left)))
-        print('当前最优适应度: {}'.format(best_fitness))
+    #     evolve_rate -= 0.01
+    #     # model_ga.evolve(parents=population_original, children=children_left, evolve_rate=evolve_rate)
+    #     population_left, best_fitness, best_group = model_ga.evolve(
+    #         parents=population_original,
+    #         children=children_left,
+    #         evolve_rate=evolve_rate)
 
-        if generation == generation_max:
-            print('-' * 55)
-            print('最优的种群为: ')
-            for em in best_group.group_list:
-                print(em.work_type_num[0], em.DNA)
+    #     population_diff = -(len(population_original) - len(population_left))
+    #     print('种群数增减量: {}'.format(population_diff))
+    #     print('当前种群总数: {}'.format(len(population_left)))
+    #     print('当前最优适应度: {}'.format(best_fitness))
+
+    #     if generation == generation_max:
+    #         print('-' * 55)
+    #         print('最优的种群为: ')
+    #         for em in best_group.group_list:
+    #             print(em.work_type_num[0], em.DNA)
 
     # print('-' * 55)
     # print('最优种群的求解过程: ')
     # print(model_ga.get_fitness_test(group=best_group))
 
-    # --------------- DNA INITIALZATION ---------------
+    # # --------------- DNA INITIALZATION ---------------
 
     # ga_ppl = GA_ppl(ppl_size=100,
     #                 evolve_rate=0.75,
