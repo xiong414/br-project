@@ -80,58 +80,6 @@ if __name__ == '__main__':
             for em in best_group.group_list:
                 print(em.work_type_num[0], em.DNA)
 
-    # print('-' * 55)
-    # print('最优种群的求解过程: ')
-    # print(model_ga.get_fitness_test(group=best_group))
-
-    # # --------------- DNA INITIALZATION ---------------
-
-    # ga_ppl = GA_ppl(ppl_size=100,
-    #                 evolve_rate=0.75,
-    #                 mutation_rate=0.4,
-    #                 walker_step=0.01,
-    #                 dependence=dependence_outer,
-    #                 output_size=10)
-
-    # gen = 0
-    # while True:
-    #     print('-' * 20, 'generation', gen, '-' * 20)
-    #     select_ppl_list = ga_ppl.select(ga_ppl.DNA_set)
-    #     children = ga_ppl.crossover(select_ppl_list)
-
-    #     children_left = ga_ppl.mutate(children)
-
-    #     ppl_left, ppl_dead, maximum, max_count, minimum, threshold = ga_ppl.evolve(
-    #         parents=ga_ppl.DNA_set, children=children_left)
-
-    #     if ga_ppl.evolve_rate >= 0.1 and max_count >= 5 and float(maximum - threshold) >= 1.0:
-    #         ga_ppl.evolve_rate -= 0.01
-    #     elif ga_ppl.evolve_rate >= 0.2:
-    #         ga_ppl.evolve_rate -= 0.01
-
-    #     if max_count >= 50 and ga_ppl.mutation_rate <= 0.9:
-    #         ga_ppl.mutation_rate += 0.01
-
-    #     print('当前种群总数: {}'.format(len(ppl_left)))
-    #     print('淘汰种群数: {}'.format(len(ppl_dead)))
-    #     print('当前最优适应度: {}, 个数为: {}'.format(maximum, max_count))
-    #     print('当前最低适应度: {}'.format(minimum))
-    #     print('当前的阈值为: {:.2f}'.format(threshold))
-    #     print('当前的进化率: {:.2f}'.format(ga_ppl.evolve_rate))
-    #     print('当前的变异率: {:.2f}'.format(ga_ppl.mutation_rate))
-
-    #     DNA = ga_ppl.get_DNA(address='output.csv')
-    #     gen += 1
-    #     if len(DNA) == ga_ppl.output_size:
-    #         break
-
-    # for dna in DNA:
-    #     print(ga_ppl.get_fitness(dna), dna)
-
-    # --------------- READ OUTPUT ---------------
-    # output_address = 'output2.csv'
-    # read_output(output_address)
-
     # TODO:
     #  BUG:会在DNA中出现重复的核苷酸，出现的原因来自于crossover的过程
     #  crossover里没有判断是否出现重复的核苷酸
