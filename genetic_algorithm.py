@@ -190,8 +190,9 @@ class GA(object):
                         a_chosen.append(chosen)
                         # 给em加DNA
                         for em in group.group_list:
+                            # 多面手bug
                             if em.work_type_num[0] == int(i):
-                                em.DNA.append(int(o))
+                                em.DNA.append(chosen)
                         # 从alist中移除被选择的module
                         a_list.remove(a_list[a_list.index(chosen)])
                         # 从paths中移除
@@ -229,7 +230,7 @@ class GA(object):
                             a_chosen.append(chosen)
                             for em in group.group_list:
                                 if em.work_type_num[0] == int(i):
-                                    em.DNA.append(int(o))
+                                    em.DNA.append(chosen)
                             a_list.remove(a_list[a_list.index(chosen)])
                             for path in paths:
                                 try:
@@ -279,6 +280,13 @@ class GA(object):
 
     def get_fitness(self, group):
         group_list = group.group_list
+        # ----- 脚手架 -----
+        # print('\n')
+        # print('-' * 50)
+        # for em in group_list:
+        #     print(em.DNA)
+        # print('-' * 50)
+        # -----------------
         fitness = 0
 
         self.initialize_module()
@@ -295,7 +303,7 @@ class GA(object):
                 else:
                     continue
                 o, i = stack_top.split('.')
-                # print(inner_module[int(o)])
+
                 if outer_module[outer_module.index(
                         int(o)
                 )].dependence == [] and inner_module[int(o)][inner_module[int(
@@ -310,19 +318,16 @@ class GA(object):
             a_list = choose_available()
             mission_todo = []
             stack_top_list = []
+
             for em in group_list:
                 try:
-                    if int(em.DNA[0]) == 0:
-                        em.DNA.pop(0)
                     stack_top = em.DNA[0]
                 except:
                     stack_top = Module(-1)
                 stack_top_list.append(stack_top)
 
                 for a in a_list:
-                    o, i = a.split('.')
-                    if int(o) == int(stack_top) and int(i) == int(
-                            em.work_type_num[0]):
+                    if a == stack_top:
                         mission_todo.append(a)
 
             time_min = None
@@ -338,6 +343,7 @@ class GA(object):
             except:
                 fitness += 0
 
+            mission_todo = list(set(mission_todo))
             for mission in mission_todo:
                 o, i = mission.split('.')
                 i = inner_module[int(o)][inner_module[int(o)].index(int(i))]
@@ -353,9 +359,11 @@ class GA(object):
                     for em in group_list:
                         try:
                             for dna in em.DNA:
-                                if dna == int(
-                                        o) and em.work_type_num[0] == int(i):
+                                dna_o, dna_i = dna.split('.')
+                                # print(dna_o, dna_i, o, i, type(dna_o), type(o), type(dna_i), type(i))
+                                if dna_o == str(o) and dna_i == str(i):
                                     em.DNA.pop(em.DNA.index(dna))
+
                         except:
                             continue
                     for mission_after in inner_module[int(o)]:
@@ -407,12 +415,7 @@ class GA(object):
             mission_todo = []
             stack_top_list = []
             for em in group_list:
-                try:
-                    if int(em.DNA[0]) == 0:
-                        em.DNA.pop(0)
-                    stack_top = em.DNA[0]
-                except:
-                    stack_top = Module(-1)
+                stack_top = em.DNA[0]
                 stack_top_list.append(stack_top)
 
                 for a in a_list:
@@ -449,6 +452,7 @@ class GA(object):
             except:
                 fitness += 0
             for mission in mission_todo:
+                o, i = mission.split('.')
                 try:
                     inner_module[mission.parent][inner_module[
                         mission.parent].index(mission)].time -= time_min
@@ -462,8 +466,8 @@ class GA(object):
                     for em in group_list:
                         try:
                             for dna in em.DNA:
-                                if dna == mission.parent and em.work_type_num[
-                                        0] == mission:
+                                dna_o, dna_i = dna.split('.')
+                                if dna_o == o and dna_i == i:
                                     em.DNA.pop(em.DNA.index(dna))
                         except:
                             continue
@@ -533,21 +537,39 @@ class GA(object):
                 child_num += 1
         return children
 
-    def nucleotide_exchange(self, DNA):
-        m, n = np.random.choice(DNA, size=2, replace=False)
-        mark1, mark2 = DNA.index(m), DNA.index(n)
-        DNA[mark1], DNA[mark2] = n, m
-        return DNA
-
     def mutate(self, children_origin, mutation_rate):
-        child_left = []
-        for child in children_origin:
-            # Every child is a Group
+        def nucleotide_exchange(child):
+            def n_exchange(DNA):
+                m, n = np.random.choice(DNA, size=2, replace=False)
+                mark1, mark2 = DNA.index(m), DNA.index(n)
+                DNA[mark1], DNA[mark2] = n, m
+                return DNA
+
             for em in child.group_list:
                 random = np.random.rand()
                 if random < mutation_rate:
-                    em.DNA = self.nucleotide_exchange(em.DNA)
-            child_out = copy.deepcopy(child)
+                    em.DNA = n_exchange(em.DNA)
+            return child
+
+        def dna_exchange(child):
+            random = np.random.rand()
+            if random < mutation_rate:
+                dna_list = []
+                for em in child.group_list:
+                    dna_list.append(em.DNA)
+                num_list = list(range(0, len(dna_list)))
+                m, n = np.random.choice(num_list, size=2, replace=False)
+                dna_list[m], dna_list[n] = dna_list[n], dna_list[m]
+                for em, dna in zip(child.group_list, dna_list):
+                    em.DNA = dna
+
+            return child
+
+        child_left = []
+        for child in children_origin:
+            # Every child is a Group
+            # child_out = copy.deepcopy(nucleotide_exchange(child))
+            child_out = copy.deepcopy(dna_exchange(child))
             fitness, key = self.get_fitness(child)
             if key:
                 child_out.fitness = fitness
@@ -604,7 +626,7 @@ class GA(object):
         # ppl_merge = population_merge.sort(key=self.get_fitness, reverse=True)
         ppl_merge = ppl_sort(population_merge)
         for pop in ppl_merge:
-            if pop.fitness <= threshold and len(population_left) < 500:
+            if pop.fitness <= threshold and len(population_left) < 1000:
                 population_left.append(pop)
             else:
                 continue
