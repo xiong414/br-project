@@ -12,8 +12,8 @@ if __name__ == '__main__':
     employees_combination = ['P', 'D', 'F', 'B', 'T']
 
     # Read data
-    quest_address = './simplified_problem/'
-    # quest_address = './complex_problem/'
+    # quest_address = './simplified_problem/'
+    quest_address = './complex_problem/'
     time_cost = read_dependence(quest_address + 'time_cost.csv', 'time')
     dependence_outer = read_dependence(quest_address + 'dependence_outer.csv',
                                        'outer')
@@ -21,8 +21,8 @@ if __name__ == '__main__':
                                        'inner')
 
     # Initialize Genetic Algorithm Model
-    ppl_size = 20
-    generation_max = 40
+    ppl_size = 100
+    generation_max = 50
     mutation_rate = 0.3
     evolve_rate = 0.7
     walker_step = 0.01
@@ -34,47 +34,51 @@ if __name__ == '__main__':
                   dependence_outer=dependence_outer,
                   walker_step=walker_step)
 
-    all_path = model_ga.load_path()
-    print(len(all_path))
+    # all_path = model_ga.load_path()
+    # for path in all_path:
+    #     stack_top = path[0]
+    #     o, i = stack_top.split('.')
+    #     print(type(o), type(i), model_ga.outer_module[model_ga.outer_module.index(int(o))].dependence)
 
-    # for generation in range(1, generation_max + 1):
-    #     print('-' * 20, 'generation', generation, '-' * 20)
-    #     population_original = copy.deepcopy(model_ga.population)
+    print('\n')
+    for generation in range(1, generation_max + 1):
+        print('-' * 20, 'generation', generation, '-' * 20)
+        population_original = copy.deepcopy(model_ga.population)
 
-    #     select_list = model_ga.select(model_ga.population)
-    #     children_origin = model_ga.crossover(select_list=select_list)
+        select_list = model_ga.select(model_ga.population)
+        children_origin = model_ga.crossover(select_list=select_list)
 
-    #     fertility_rate = 100 * len(children_origin) / (
-    #         len(population_original) / 2)
-    #     print('生育率: {:.2f}%'.format(fertility_rate))
+        fertility_rate = 100 * len(children_origin) / (
+            len(population_original) / 2)
+        print('生育率: {:.2f}%'.format(fertility_rate))
 
-    #     mutation_rate = mutation_rate
-    #     children_left = model_ga.mutate(children_origin=children_origin,
-    #                                     mutation_rate=mutation_rate)
+        mutation_rate = mutation_rate
+        children_left = model_ga.mutate(children_origin=children_origin,
+                                        mutation_rate=mutation_rate)
 
-    #     if len(children_origin) != 0:
-    #         print('变异存活率: {:.2f}%'.format(100 * len(children_left) /
-    #                                       len(children_origin)))
-    #     else:
-    #         print('无子代，无法变异')
+        if len(children_origin) != 0:
+            print('变异存活率: {:.2f}%'.format(100 * len(children_left) /
+                                          len(children_origin)))
+        else:
+            print('无子代，无法变异')
 
-    #     evolve_rate -= 0.01
-    #     # model_ga.evolve(parents=population_original, children=children_left, evolve_rate=evolve_rate)
-    #     population_left, best_fitness, best_group = model_ga.evolve(
-    #         parents=population_original,
-    #         children=children_left,
-    #         evolve_rate=evolve_rate)
+        evolve_rate -= 0.002
+        # model_ga.evolve(parents=population_original, children=children_left, evolve_rate=evolve_rate)
+        population_left, best_fitness, best_group = model_ga.evolve(
+            parents=population_original,
+            children=children_left,
+            evolve_rate=evolve_rate)
 
-    #     population_diff = -(len(population_original) - len(population_left))
-    #     print('种群数增减量: {}'.format(population_diff))
-    #     print('当前种群总数: {}'.format(len(population_left)))
-    #     print('当前最优适应度: {}'.format(best_fitness))
+        population_diff = -(len(population_original) - len(population_left))
+        print('种群数增减量: {}'.format(population_diff))
+        print('当前种群总数: {}'.format(len(population_left)))
+        print('当前最优适应度: {}'.format(best_fitness))
 
-    #     if generation == generation_max:
-    #         print('-' * 55)
-    #         print('最优的种群为: ')
-    #         for em in best_group.group_list:
-    #             print(em.work_type_num[0], em.DNA)
+        if generation == generation_max:
+            print('-' * 55)
+            print('最优的种群为: ')
+            for em in best_group.group_list:
+                print(em.work_type_num[0], em.DNA)
 
     # print('-' * 55)
     # print('最优种群的求解过程: ')

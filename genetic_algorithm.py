@@ -261,6 +261,8 @@ class GA(object):
         # Initialization Function Part
         logging.info('Initializing Module...')
         self.initialize_module()
+        logging.info('Loading the Paths...')
+        self.paths = self.load_path()
         logging.info('Initializing Population...')
         self.initialize_population(em_combination=employees_combination)
 
@@ -313,7 +315,6 @@ class GA(object):
             val.sort()
 
     def load_path(self):
-        logging.info('Loading the Paths...')
         dependence_outer = copy.deepcopy(self.dependence_outer)
         dependence_inner = copy.deepcopy(self.dependence_inner)
 
@@ -347,6 +348,7 @@ class GA(object):
         return all_path
 
     def check_in(self, list1, list2):
+        # check list1 in list2 or not
         res = [False for i in list1 if i not in list2]
         if res:
             return False
@@ -368,94 +370,137 @@ class GA(object):
                 return False
 
     def initialize_population(self, em_combination):
-        # New Method to Initialaize Population
+        # Another New Method to Initialize Population
         self.population = []
-        for p in range(self.ppl_size):
-            # n = 0
-            while True:
-                self.initialize_module()
-                # outer_module = copy.deepcopy(self.outer_module)
-                group = Group(group_id=int(p))
-                group_sub = Group(group_id=str(p))
-                for job in em_combination:
-                    em = Employee(work_type=job)
-                    em_sub = Employee(work_type=job)
-                    DNA = []
-                    outer_module = copy.deepcopy(self.outer_module)
-                    for t in range(len(outer_module)):
-                        avail_outer = []
-                        for outer in outer_module:
-                            if len(outer.dependence) == 0:
-                                avail_outer.append(outer)
-                        choose_outer = np.random.choice(avail_outer,
-                                                        size=1,
-                                                        replace=False)[0]
-                        DNA.append(choose_outer)
-                        outer_module.remove(choose_outer)
-                        for outer_ in outer_module:
-                            try:
-                                outer_.del_dep(choose_outer)
-                            except:
-                                continue
-                    em.DNA = DNA
-                    DNA_sub = copy.deepcopy(DNA)
-                    em_sub.DNA = DNA_sub
-                    group.add_employee(em)
-                    group_sub.add_employee(em_sub)
-                fitness, key = self.get_fitness(group=group_sub)
-                # n += 1
-                # print('\r', n, end='')
-                # print('\n', fitness, key, end='\n')
-                # print('*' * 10)
-                if key:
-                    # print(fitness, key)
-                    group.fitness = fitness
-                    self.population.append(group)
-                    break
+
+        def choose_available():
+            available_list = []
+            for path in paths:
+                if len(path) != 0:
+                    stack_top = path[0]
                 else:
                     continue
-        # print(len(self.population))
+                o, i = stack_top.split('.')
+                # print(inner_module[int(o)])
+                if outer_module[outer_module.index(
+                        int(o)
+                )].dependence == [] and inner_module[int(o)][inner_module[int(
+                        o
+                )].index(
+                        int(i)
+                )].dependence == [] and stack_top not in available_list:
+                    available_list.append(stack_top)
+            return available_list
 
-        # Initialize the Population and DNA (Old Method)
-        # self.population = []
-        # for p in range(self.ppl_size):
-        #     while True:
-        #         self.initialize_module()
-        #         outer_module = self.outer_module
-        #         group = Group(group_id=str(p))
-        #         group_buffer = Group(group_id=int(p))
-        #         for job in em_combination:
-        #             em = Employee(work_type=job)
-        #             em_buffer = Employee(work_type=job)
-        #             while True:
-        #                 DNA = list(outer_module)
-        #                 np.random.shuffle(DNA)
-        #                 if self.check_rule(DNA=DNA, module=outer_module):
-        #                     em.DNA = DNA
-        #                     DNA_ = copy.deepcopy(DNA)
-        #                     em_buffer.DNA = DNA_
-        #                     # 防止某个员工的工作顺序表中含有不存在的工作，例如2.2
-        #                     for d in DNA:
-        #                         if em.work_type_num[
-        #                                 0] not in self.inner_module[d]:
-        #                             DNA[DNA.index(d)] = Module(0)
-        #                             DNA_[DNA_.index(d)] = Module(0)
-        #                     break
-        #             group.add_employee(em)
-        #             # print('got a employee!!!')
-        #             # print(em.DNA)
-        #             group_buffer.add_employee(em_buffer)
-
-        #         fitness, key = self.get_fitness(group=group)
-
-        #         group_buffer.fitness = copy.deepcopy(group.fitness)
-        #         if key:
-        #             self.population.append(group_buffer)
-        #             # print(p + 1, '/', self.ppl_size)
-        #             # print('Append 1 group!', fitness, key)
-        #             break
-        #         else:
-        #             continue
+        for p in range(self.ppl_size):
+            print('\r', '生成中... 当前种群数:', p + 1, end='')
+            self.initialize_module()
+            outer_module = copy.deepcopy(self.outer_module)
+            inner_module = copy.deepcopy(self.inner_module)
+            paths = copy.deepcopy(self.paths)
+            group = Group(group_id=int(p))
+            for job in em_combination:
+                em = Employee(work_type=job)
+                em.DNA = []
+                group.add_employee(em)
+            while True:
+                a_list = list(set(choose_available()))
+                # choose from the a_list
+                a_chosen = []
+                while True:
+                    chosen = np.random.choice(a_list, size=1)[0]
+                    o, i = chosen.split('.')
+                    # 如果是第一次选择
+                    if a_chosen == []:
+                        a_chosen.append(chosen)
+                        # 给em加DNA
+                        for em in group.group_list:
+                            if em.work_type_num[0] == int(i):
+                                em.DNA.append(int(o))
+                        # 从alist中移除被选择的module
+                        a_list.remove(a_list[a_list.index(chosen)])
+                        # 从paths中移除
+                        for path in paths:
+                            try:
+                                path.remove(chosen)
+                            except:
+                                continue
+                        # 从inner_module中移除
+                        inner_module[int(o)].remove(
+                            inner_module[int(o)][inner_module[int(o)].index(
+                                int(i))])
+                        for inner in inner_module[int(o)]:
+                            try:
+                                inner.del_dep(int(i))
+                            except:
+                                continue
+                        # 从outer_module中移除
+                        if inner_module[int(o)] == []:
+                            for outer in outer_module:
+                                try:
+                                    outer.del_dep(int(o))
+                                except:
+                                    continue
+                    else:
+                        flag = False
+                        for c in a_chosen:
+                            c_o, c_i = c.split('.')
+                            if c_i == i:
+                                # 多面手bug预留
+                                flag = True
+                        # 如果曾经选择的module中 没有与现在选择的module有工位冲突
+                        # 那么就将这个选择的module添加进来 即flag==false
+                        if flag is False:
+                            a_chosen.append(chosen)
+                            for em in group.group_list:
+                                if em.work_type_num[0] == int(i):
+                                    em.DNA.append(int(o))
+                            a_list.remove(a_list[a_list.index(chosen)])
+                            for path in paths:
+                                try:
+                                    path.remove(chosen)
+                                except:
+                                    continue
+                            # 从inner_module中移除
+                            inner_module[int(o)].remove(inner_module[int(o)][
+                                inner_module[int(o)].index(int(i))])
+                            for inner in inner_module[int(o)]:
+                                try:
+                                    inner.del_dep(int(i))
+                                except:
+                                    continue
+                            # 从outer_module中移除
+                            if inner_module[int(o)] == []:
+                                for outer in outer_module:
+                                    try:
+                                        outer.del_dep(int(o))
+                                    except:
+                                        continue
+                        # 若发生工位冲突 那么就再选一次
+                        else:
+                            continue
+                    if a_list == []:
+                        break
+                    else:
+                        c_i_list = []
+                        a_i_list = []
+                        for c in a_chosen:
+                            c_o, c_i = c.split('.')
+                            c_i_list.append(c_i)
+                        for a in a_list:
+                            a_o, a_i = a.split('.')
+                            a_i_list.append(a_i)
+                        if self.check_in(a_i_list, c_i_list):
+                            break
+                        else:
+                            continue
+                a_list_ = choose_available()
+                # break条件
+                if a_list_ == []:
+                    group_sub = copy.deepcopy(group)
+                    group.fitness, _ = self.get_fitness(group_sub)
+                    self.population.append(group)
+                    break
 
     def get_fitness(self, group):
         group_list = group.group_list
@@ -465,14 +510,25 @@ class GA(object):
 
         outer_module = self.outer_module
         inner_module = self.inner_module
+        paths = self.load_path()
 
         def choose_available():
             available_list = []
-            for i in outer_module:
-                if i.status:
-                    for j in inner_module[i]:
-                        if j.status:
-                            available_list.append(j)
+            for path in paths:
+                if len(path) != 0:
+                    stack_top = path[0]
+                else:
+                    continue
+                o, i = stack_top.split('.')
+                # print(inner_module[int(o)])
+                if outer_module[outer_module.index(
+                        int(o)
+                )].dependence == [] and inner_module[int(o)][inner_module[int(
+                        o
+                )].index(
+                        int(i)
+                )].dependence == [] and stack_top not in available_list:
+                    available_list.append(stack_top)
             return available_list
 
         while True:
@@ -489,56 +545,55 @@ class GA(object):
                 stack_top_list.append(stack_top)
 
                 for a in a_list:
-                    # 藏着问题：多面手 em.work_type_num[0]
-                    if int(a.parent) == int(stack_top) and int(a.ID) == int(
+                    o, i = a.split('.')
+                    if int(o) == int(stack_top) and int(i) == int(
                             em.work_type_num[0]):
-                        # and a not in mission_todo
-                        if a in mission_todo:
-                            a_ = mission_todo[mission_todo.index(a)]
-                            if a.parent != a_.parent:
-                                mission_todo.append(a)
-                        else:
-                            mission_todo.append(a)
+                        mission_todo.append(a)
 
             time_min = None
             for mission in mission_todo:
+                o, i = mission.split('.')
+                i = inner_module[int(o)][inner_module[int(o)].index(int(i))]
                 if time_min is None:
-                    time_min = mission.time
-                elif mission.time < time_min:
-                    time_min = mission.time
+                    time_min = i.time
+                elif i.time < time_min:
+                    time_min = i.time
             try:
                 fitness += float(time_min)
             except:
                 fitness += 0
+
             for mission in mission_todo:
+                o, i = mission.split('.')
+                i = inner_module[int(o)][inner_module[int(o)].index(int(i))]
                 try:
-                    inner_module[mission.parent][inner_module[
-                        mission.parent].index(mission)].time -= time_min
+                    i.time -= time_min
                 except:
                     pass
-
-                if inner_module[mission.parent][inner_module[
-                        mission.parent].index(mission)].time == 0:
-                    inner_module[mission.parent].remove(mission)
+                if i.time == 0:
+                    inner_module[int(o)].remove(int(i))
+                    for path in paths:
+                        if mission in path:
+                            path.remove(mission)
                     for em in group_list:
                         try:
                             for dna in em.DNA:
-                                if dna == mission.parent and em.work_type_num[
-                                        0] == mission:
+                                if dna == int(
+                                        o) and em.work_type_num[0] == int(i):
                                     em.DNA.pop(em.DNA.index(dna))
                         except:
                             continue
-                    for mission_after in inner_module[mission.parent]:
-                        if mission in mission_after.dependence:
-                            mission_after.del_dep(mission)
-                    if len(inner_module[mission.parent]) == 0:
+                    for mission_after in inner_module[int(o)]:
+                        if int(i) in mission_after.dependence:
+                            mission_after.del_dep(int(i))
+                    if len(inner_module[int(o)]) == 0:
                         for out in outer_module:
-                            if mission.parent in out.dependence:
-                                out.del_dep(mission.parent)
+                            if int(o) in out.dependence:
+                                out.del_dep(int(o))
             if len(mission_todo) == 0:
                 break
-        succeed_key = True
 
+        succeed_key = True
         # 不光要判断外部依赖，还要判断内部依赖是否都消除干净，消除干净的才是能够求出fitness的
         # Oct 27 11:28 PM DONE!
         for ooo in outer_module:
@@ -735,6 +790,25 @@ class GA(object):
 
     # 筛选部分的Group将其淘汰 包含父母合并
     def evolve(self, parents, children, evolve_rate):
+        def ppl_sort(ppl):
+            ppl_sorted = []
+            for group in ppl:
+                fitness = group.fitness
+                if ppl_sorted != []:
+                    for group_ in ppl_sorted:
+                        fitness_ = group_.fitness
+                        flag = False
+                        if fitness <= fitness_:
+                            ppl_sorted.insert(
+                                ppl_sorted.index(group_) + 1, group)
+                            flag = True
+                            break
+                    if flag is False:
+                        ppl_sorted.append(group)
+                else:
+                    ppl_sorted.append(group)
+            return ppl_sorted
+
         population_merge = []
         fitness_list = []
         for p in parents:
@@ -748,16 +822,17 @@ class GA(object):
                                                 evolve_rate=evolve_rate)
         best_group = None
         for g in population_merge:
-            # for em in g.group_list:
-            #     print(em.DNA)
-            # print('.'*30)
             if g.fitness == minimum:
                 best_group = g
                 break
         population_left = []
-        for pop in population_merge:
-            if pop.fitness < threshold:
+        # ppl_merge = population_merge.sort(key=self.get_fitness, reverse=True)
+        ppl_merge = ppl_sort(population_merge)
+        for pop in ppl_merge:
+            if pop.fitness <= threshold and len(population_left) < 500:
                 population_left.append(pop)
+            else:
+                continue
         if len(population_left) <= 1:
             print('***触发防灭绝保护***')
             population_left.append(population_merge[0])
