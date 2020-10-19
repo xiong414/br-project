@@ -9,11 +9,11 @@ import copy
 
 if __name__ == '__main__':
     # Initialize ALL Employees
-    employees_combination = ['P', 'D', 'F', 'B', 'T']
+    employees_combination = ['P', 'P', 'D', 'F', 'B', 'B', 'T']
 
     # Read data
-    # quest_address = './simplified_problem/'
-    quest_address = './complex_problem/'
+    quest_address = './simplified_problem/'
+    # quest_address = './complex_problem/'
     time_cost = read_dependence(quest_address + 'time_cost.csv', 'time')
     dependence_outer = read_dependence(quest_address + 'dependence_outer.csv',
                                        'outer')
@@ -21,11 +21,11 @@ if __name__ == '__main__':
                                        'inner')
 
     # Initialize Genetic Algorithm Model
-    ppl_size = 100
-    generation_max = 50
-    mutation_rate = 0.3
-    evolve_rate = 0.7
-    walker_step = 0.01
+    ppl_size = 20
+    generation_max = 20
+    mutation_rate = 1
+    evolve_rate = 0.8
+    walker_step = 0.015
 
     model_ga = GA(employees_combination=employees_combination,
                   ppl_size=ppl_size,
@@ -62,7 +62,8 @@ if __name__ == '__main__':
         else:
             print('无子代，无法变异')
 
-        evolve_rate -= 0.002
+        if evolve_rate >= 0.4:
+            evolve_rate -= 0.005
         # model_ga.evolve(parents=population_original, children=children_left, evolve_rate=evolve_rate)
         population_left, best_fitness, best_group = model_ga.evolve(
             parents=population_original,
