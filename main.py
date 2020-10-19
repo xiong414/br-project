@@ -12,8 +12,8 @@ if __name__ == '__main__':
     employees_combination = ['P', 'D', 'F', 'B', 'T']
 
     # Read data
-    quest_address = './simplified_problem/'
-    # quest_address = './complex_problem/'
+    # quest_address = './simplified_problem/'
+    quest_address = './complex_problem/'
     time_cost = read_dependence(quest_address + 'time_cost.csv', 'time')
     dependence_outer = read_dependence(quest_address + 'dependence_outer.csv',
                                        'outer')
@@ -21,10 +21,10 @@ if __name__ == '__main__':
                                        'inner')
 
     # Initialize Genetic Algorithm Model
-    ppl_size = 150
-    generation_max = 24
-    mutation_rate = 0.1
-    evolve_rate = 0.6
+    ppl_size = 100
+    generation_max = 50
+    mutation_rate = 0.3
+    evolve_rate = 0.7
     walker_step = 0.01
 
     model_ga = GA(employees_combination=employees_combination,
@@ -34,6 +34,13 @@ if __name__ == '__main__':
                   dependence_outer=dependence_outer,
                   walker_step=walker_step)
 
+    # all_path = model_ga.load_path()
+    # for path in all_path:
+    #     stack_top = path[0]
+    #     o, i = stack_top.split('.')
+    #     print(type(o), type(i), model_ga.outer_module[model_ga.outer_module.index(int(o))].dependence)
+
+    print('\n')
     for generation in range(1, generation_max + 1):
         print('-' * 20, 'generation', generation, '-' * 20)
         population_original = copy.deepcopy(model_ga.population)
@@ -55,7 +62,7 @@ if __name__ == '__main__':
         else:
             print('无子代，无法变异')
 
-        evolve_rate -= 0.01
+        evolve_rate -= 0.002
         # model_ga.evolve(parents=population_original, children=children_left, evolve_rate=evolve_rate)
         population_left, best_fitness, best_group = model_ga.evolve(
             parents=population_original,
@@ -77,7 +84,7 @@ if __name__ == '__main__':
     # print('最优种群的求解过程: ')
     # print(model_ga.get_fitness_test(group=best_group))
 
-    # --------------- DNA INITIALZATION ---------------
+    # # --------------- DNA INITIALZATION ---------------
 
     # ga_ppl = GA_ppl(ppl_size=100,
     #                 evolve_rate=0.75,
