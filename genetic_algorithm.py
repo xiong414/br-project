@@ -643,8 +643,6 @@ class GA(object):
         population_left = []
         # ppl_merge = population_merge.sort(key=self.get_fitness, reverse=True)
         ppl_merge = ppl_sort(population_merge)
-        for p in ppl_merge:
-            print(p.fitness)
         for pop in ppl_merge:
             if pop.fitness <= threshold and len(population_left) < 1000:
                 population_left.append(pop)

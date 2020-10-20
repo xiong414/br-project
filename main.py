@@ -6,6 +6,9 @@
 from read_file import *
 from genetic_algorithm import *
 import copy
+import sys
+
+sys.setrecursionlimit(100000)
 
 if __name__ == '__main__':
     # Initialize ALL Employees
