@@ -191,8 +191,16 @@ class GA(object):
                         # 给em加DNA
                         for em in group.group_list:
                             # 多面手bug
-                            if em.work_type_num[0] == int(i):
-                                em.DNA.append(chosen)
+                            for work_type in em.work_type_num:
+                                if work_type == int(i):
+                                    em.DNA.append(chosen)
+                            # BUG:这样的写法没办法确定“全栈工程师”做哪个工作更加合理
+                            # 且这样还会诱发
+                            # BUG:在mutate时选择dna_exchange的方法时
+                            # 会导致其他原本不是全栈的员工去做多个任务
+                            # 可以通过修改mutate方法来解决
+                            # if em.work_type_num[0] == int(i):
+                            #     em.DNA.append(chosen)
                         # 从alist中移除被选择的module
                         a_list.remove(a_list[a_list.index(chosen)])
                         # 从paths中移除
@@ -222,15 +230,18 @@ class GA(object):
                         for c in a_chosen:
                             c_o, c_i = c.split('.')
                             if c_i == i:
-                                # 多面手bug预留
                                 flag = True
                         # 如果曾经选择的module中 没有与现在选择的module有工位冲突
                         # 那么就将这个选择的module添加进来 即flag==false
                         if flag is False:
                             a_chosen.append(chosen)
                             for em in group.group_list:
-                                if em.work_type_num[0] == int(i):
-                                    em.DNA.append(chosen)
+                                # 多面手bug预留
+                                for work_type in em.work_type_num:
+                                    if work_type == int(i):
+                                        em.DNA.append(chosen)
+                                # if em.work_type_num[0] == int(i):
+                                #     em.DNA.append(chosen)
                             a_list.remove(a_list[a_list.index(chosen)])
                             for path in paths:
                                 try:
@@ -360,7 +371,6 @@ class GA(object):
                         try:
                             for dna in em.DNA:
                                 dna_o, dna_i = dna.split('.')
-                                # print(dna_o, dna_i, o, i, type(dna_o), type(o), type(dna_i), type(i))
                                 if dna_o == str(o) and dna_i == str(i):
                                     em.DNA.pop(em.DNA.index(dna))
 
@@ -553,6 +563,9 @@ class GA(object):
 
         def dna_exchange(child):
             random = np.random.rand()
+            # for em in child.group_list:
+            #     print(em.work_type_num, em.DNA)
+            # print('*' * 25)
             if random < mutation_rate:
                 dna_list = []
                 for em in child.group_list:
@@ -560,17 +573,27 @@ class GA(object):
                 num_list = list(range(0, len(dna_list)))
                 m, n = np.random.choice(num_list, size=2, replace=False)
                 dna_list[m], dna_list[n] = dna_list[n], dna_list[m]
+                # 此处要对后缀进行修改
                 for em, dna in zip(child.group_list, dna_list):
+                    for d in dna:
+                        d_o, d_i = d.split('.')
+                        if int(d_i) not in em.work_type_num:
+                            d_ = d_o + '.' + str(em.work_type_num[0])
+                            dna[dna.index(d)] = d_
                     em.DNA = dna
+                # for em in child.group_list:
+                #     print(em.work_type_num, em.DNA)
+                # print('-' * 40)
 
             return child
 
         child_left = []
         for child in children_origin:
-            # Every child is a Group
+            # 两种不同的mutate方法
             # child_out = copy.deepcopy(nucleotide_exchange(child))
             child_out = copy.deepcopy(dna_exchange(child))
-            fitness, key = self.get_fitness(child)
+            child_out_sub = copy.deepcopy(child_out)
+            fitness, key = self.get_fitness(child_out_sub)
             if key:
                 child_out.fitness = fitness
                 child_left.append(child_out)
@@ -587,24 +610,19 @@ class GA(object):
 
     # 筛选部分的Group将其淘汰 包含父母合并
     def evolve(self, parents, children, evolve_rate):
+        # quick sort
         def ppl_sort(ppl):
-            ppl_sorted = []
-            for group in ppl:
-                fitness = group.fitness
-                if ppl_sorted != []:
-                    for group_ in ppl_sorted:
-                        fitness_ = group_.fitness
-                        flag = False
-                        if fitness <= fitness_:
-                            ppl_sorted.insert(
-                                ppl_sorted.index(group_) + 1, group)
-                            flag = True
-                            break
-                    if flag is False:
-                        ppl_sorted.append(group)
+            if len(ppl) < 2:
+                return ppl
+            mid = ppl[0]
+            left, right = [], []
+            ppl.remove(mid)
+            for item in ppl:
+                if item.fitness >= mid.fitness:
+                    right.append(item)
                 else:
-                    ppl_sorted.append(group)
-            return ppl_sorted
+                    left.append(item)
+            return ppl_sort(left) + [mid] + ppl_sort(right)
 
         population_merge = []
         fitness_list = []
@@ -625,6 +643,8 @@ class GA(object):
         population_left = []
         # ppl_merge = population_merge.sort(key=self.get_fitness, reverse=True)
         ppl_merge = ppl_sort(population_merge)
+        for p in ppl_merge:
+            print(p.fitness)
         for pop in ppl_merge:
             if pop.fitness <= threshold and len(population_left) < 1000:
                 population_left.append(pop)

@@ -9,7 +9,7 @@ import copy
 
 if __name__ == '__main__':
     # Initialize ALL Employees
-    employees_combination = ['P', 'P', 'D', 'F', 'B', 'B', 'T']
+    employees_combination = ['P', 'D', 'BF', 'B', 'T']
 
     # Read data
     quest_address = './simplified_problem/'
@@ -21,10 +21,10 @@ if __name__ == '__main__':
                                        'inner')
 
     # Initialize Genetic Algorithm Model
-    ppl_size = 20
-    generation_max = 20
-    mutation_rate = 1
-    evolve_rate = 0.8
+    ppl_size = 100
+    generation_max = 50
+    mutation_rate = 0.5
+    evolve_rate = 0.7
     walker_step = 0.015
 
     model_ga = GA(employees_combination=employees_combination,
