@@ -194,13 +194,6 @@ class GA(object):
                             if int(i) in em.work_type_num:
                                 avaliable_em.append(em)
                             # BUG:这样的写法没办法确定“全栈工程师”做哪个工作更加合理
-                            # for work_type in em.work_type_num:
-                            #     if work_type == int(i):
-                            #         em.DNA.append(chosen)
-                            #         break_flag = True
-                            #         break
-                            # if break_flag is True:
-                            #     break
                         chosen_em = np.random.choice(avaliable_em, size=1)
                         for em in group.group_list:
                             if em == chosen_em:
@@ -298,13 +291,6 @@ class GA(object):
 
     def get_fitness(self, group, test_flag=False):
         group_list = group.group_list
-        # ----- 脚手架 -----
-        # print('\n')
-        # print('-' * 50)
-        # for em in group_list:
-        #     print(em.DNA)
-        # print('-' * 50)
-        # -----------------
         fitness = 0
 
         self.initialize_module()
@@ -413,8 +399,6 @@ class GA(object):
                 break
 
         succeed_key = True
-        # 不光要判断外部依赖，还要判断内部依赖是否都消除干净，消除干净的才是能够求出fitness的
-        # Oct 27 11:28 PM DONE!
         for ooo in outer_module:
             if len(ooo.dependence) != 0:
                 succeed_key = False
@@ -513,9 +497,6 @@ class GA(object):
                             d_ = d_o + '.' + str(em.work_type_num[0])
                             dna[dna.index(d)] = d_
                     em.DNA = dna
-                # for em in child.group_list:
-                #     print(em.work_type_num, em.DNA)
-                # print('-' * 40)
 
             return child
 

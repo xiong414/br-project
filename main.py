@@ -42,12 +42,6 @@ if __name__ == '__main__':
                   dependence_outer=dependence_outer,
                   walker_step=walker_step)
 
-    # all_path = model_ga.load_path()
-    # for path in all_path:
-    #     stack_top = path[0]
-    #     o, i = stack_top.split('.')
-    #     print(type(o), type(i), model_ga.outer_module[model_ga.outer_module.index(int(o))].dependence)
-
     print('\n')
     for generation in range(1, generation_max + 1):
         print('-' * 23, 'generation', generation, '-' * 23)
@@ -72,7 +66,6 @@ if __name__ == '__main__':
 
         if evolve_rate >= 0.4:
             evolve_rate -= 0.005
-        # model_ga.evolve(parents=population_original, children=children_left, evolve_rate=evolve_rate)
         population_left, best_fitness, best_group = model_ga.evolve(
             parents=population_original,
             children=children_left,
@@ -89,20 +82,5 @@ if __name__ == '__main__':
             for em in best_group.group_list:
                 print(em.work_type, '\t:', em.DNA)
 
-    model_ga.get_fitness(best_group, test_flag=True)
-
-    # TODO:
-    #  BUG:会在DNA中出现重复的核苷酸，出现的原因来自于crossover的过程
-    #  crossover里没有判断是否出现重复的核苷酸
-    #  解决方案1：杀死有重复核苷酸的DNA
-    #  解决方案2：改变通过rule判断的方式
-    #  *** 依然没有处理多面手的问题 ***
-    #  BUG：种群数会在某一时刻骤减
-    #  出现种群数骤减的原因是由于不断上升的进化率
-    #  但是种群中却没有进化出更好的个体
-    #  BUG: 种群最后只剩下1个个体，导致种群绝育
-    #  其实本质和上一个bug是一样的，主要在于如何控制evolve_rate
-    # TODO:
-    #  给crossover和mutate进行改进，优化交叉和变异的过程
-    #  使得优化和变异的效率得到提升，交叉的过程优先学习那些能提升fitness的变交叉过程
-    #  变异也是一样的，这里就需要存储那些使fitness增加的crossover和mutate
+    # 输出求解过程
+    # model_ga.get_fitness(best_group, test_flag=True)
