@@ -12,7 +12,12 @@ sys.setrecursionlimit(100000)
 
 if __name__ == '__main__':
     # Initialize ALL Employees
-    employees_combination = ['P', 'D', 'BF', 'B', 'T']
+    # 1 一工一人 -> 57.5
+    employees_combination = ['P', 'D', 'F', 'B', 'T']
+    # 2 一工多人
+    # employees_combination = ['P', 'P', 'D', 'F', 'B', 'B', 'T']
+    # 4 多面手
+    # employees_combination = ['PD', 'D', 'F', 'BF', 'T']
 
     # Read data
     quest_address = './simplified_problem/'
@@ -24,9 +29,9 @@ if __name__ == '__main__':
                                        'inner')
 
     # Initialize Genetic Algorithm Model
-    ppl_size = 100
-    generation_max = 50
-    mutation_rate = 0.5
+    ppl_size = 500
+    generation_max = 40
+    mutation_rate = 0.6
     evolve_rate = 0.7
     walker_step = 0.015
 
@@ -45,7 +50,7 @@ if __name__ == '__main__':
 
     print('\n')
     for generation in range(1, generation_max + 1):
-        print('-' * 20, 'generation', generation, '-' * 20)
+        print('-' * 23, 'generation', generation, '-' * 23)
         population_original = copy.deepcopy(model_ga.population)
 
         select_list = model_ga.select(model_ga.population)
@@ -79,10 +84,12 @@ if __name__ == '__main__':
         print('当前最优适应度: {}'.format(best_fitness))
 
         if generation == generation_max:
-            print('-' * 55)
+            print('-' * 60)
             print('最优的种群为: ')
             for em in best_group.group_list:
-                print(em.work_type_num[0], em.DNA)
+                print(em.work_type, '\t:', em.DNA)
+
+    model_ga.get_fitness(best_group, test_flag=True)
 
     # TODO:
     #  BUG:会在DNA中出现重复的核苷酸，出现的原因来自于crossover的过程

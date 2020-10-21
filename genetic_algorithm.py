@@ -189,18 +189,23 @@ class GA(object):
                     if a_chosen == []:
                         a_chosen.append(chosen)
                         # 给em加DNA
+                        avaliable_em = []
                         for em in group.group_list:
-                            # 多面手bug
-                            for work_type in em.work_type_num:
-                                if work_type == int(i):
-                                    em.DNA.append(chosen)
+                            if int(i) in em.work_type_num:
+                                avaliable_em.append(em)
                             # BUG:这样的写法没办法确定“全栈工程师”做哪个工作更加合理
-                            # 且这样还会诱发
-                            # BUG:在mutate时选择dna_exchange的方法时
-                            # 会导致其他原本不是全栈的员工去做多个任务
-                            # 可以通过修改mutate方法来解决
-                            # if em.work_type_num[0] == int(i):
-                            #     em.DNA.append(chosen)
+                            # for work_type in em.work_type_num:
+                            #     if work_type == int(i):
+                            #         em.DNA.append(chosen)
+                            #         break_flag = True
+                            #         break
+                            # if break_flag is True:
+                            #     break
+                        chosen_em = np.random.choice(avaliable_em, size=1)
+                        for em in group.group_list:
+                            if em == chosen_em:
+                                em.DNA.append(chosen)
+
                         # 从alist中移除被选择的module
                         a_list.remove(a_list[a_list.index(chosen)])
                         # 从paths中移除
@@ -235,13 +240,15 @@ class GA(object):
                         # 那么就将这个选择的module添加进来 即flag==false
                         if flag is False:
                             a_chosen.append(chosen)
+                            avaliable_em = []
                             for em in group.group_list:
-                                # 多面手bug预留
-                                for work_type in em.work_type_num:
-                                    if work_type == int(i):
-                                        em.DNA.append(chosen)
-                                # if em.work_type_num[0] == int(i):
-                                #     em.DNA.append(chosen)
+                                if int(i) in em.work_type_num:
+                                    avaliable_em.append(em)
+                            chosen_em = np.random.choice(avaliable_em, size=1)
+                            for em in group.group_list:
+                                if em == chosen_em:
+                                    em.DNA.append(chosen)
+
                             a_list.remove(a_list[a_list.index(chosen)])
                             for path in paths:
                                 try:
@@ -289,7 +296,7 @@ class GA(object):
                     self.population.append(group)
                     break
 
-    def get_fitness(self, group):
+    def get_fitness(self, group, test_flag=False):
         group_list = group.group_list
         # ----- 脚手架 -----
         # print('\n')
@@ -327,6 +334,12 @@ class GA(object):
 
         while True:
             a_list = choose_available()
+            if test_flag is True:
+                print('-' * 30)
+                for a in a_list:
+                    a_o, a_i = a.split('.')
+                    print(a_o, a_i, '|', end=' ')
+                print('\n')
             mission_todo = []
             stack_top_list = []
 
@@ -336,19 +349,32 @@ class GA(object):
                 except:
                     stack_top = Module(-1)
                 stack_top_list.append(stack_top)
-
                 for a in a_list:
                     if a == stack_top:
                         mission_todo.append(a)
 
+            if test_flag is True:
+                for m_todo in mission_todo:
+                    m_todo_o, m_todo_i = m_todo.split('.')
+                    print(m_todo_o, m_todo_i, '|')
+
             time_min = None
+            which_one_is_the_min = None
             for mission in mission_todo:
                 o, i = mission.split('.')
                 i = inner_module[int(o)][inner_module[int(o)].index(int(i))]
                 if time_min is None:
                     time_min = i.time
+                    which_one_is_the_min = mission
                 elif i.time < time_min:
                     time_min = i.time
+                    which_one_is_the_min = mission
+            if test_flag is True:
+                try:
+                    w_o, w_i = which_one_is_the_min.split('.')
+                    print('(', time_min, ')｜', w_o, w_i, '|')
+                except:
+                    print('')
             try:
                 fitness += float(time_min)
             except:
@@ -397,100 +423,6 @@ class GA(object):
                 succeed_key = False
         group.fitness = fitness
         return fitness, succeed_key
-
-    def get_fitness_test(self, group):
-        group_list = group.group_list
-        fitness = 0
-
-        self.initialize_module()
-
-        outer_module = self.outer_module
-        inner_module = self.inner_module
-
-        def choose_available():
-            available_list = []
-            for i in outer_module:
-                if i.status:
-                    for j in inner_module[i]:
-                        if j.status:
-                            available_list.append(j)
-            return available_list
-
-        while True:
-            print('-' * 30)
-            a_list = choose_available()
-            for a in a_list:
-                print(a.parent, a, '|', end=' ')
-            print('\n')
-            mission_todo = []
-            stack_top_list = []
-            for em in group_list:
-                stack_top = em.DNA[0]
-                stack_top_list.append(stack_top)
-
-                for a in a_list:
-                    # 藏着问题：多面手 em.work_type_num[0]
-                    if int(a.parent) == int(stack_top) and int(a.ID) == int(
-                            em.work_type_num[0]):
-                        # and a not in mission_todo
-                        if a in mission_todo:
-                            a_ = mission_todo[mission_todo.index(a)]
-                            if a.parent != a_.parent:
-                                mission_todo.append(a)
-                        else:
-                            mission_todo.append(a)
-
-            for m_todo in mission_todo:
-                print(m_todo.parent, m_todo, '|')
-
-            time_min = None
-            which_one_is_the_min = None
-            for mission in mission_todo:
-                if time_min is None:
-                    time_min = mission.time
-                    which_one_is_the_min = mission
-                elif mission.time < time_min:
-                    time_min = mission.time
-                    which_one_is_the_min = mission
-            try:
-                print('(', time_min, ') |', which_one_is_the_min.parent,
-                      which_one_is_the_min, '|')
-            except:
-                print('')
-            try:
-                fitness += float(time_min)
-            except:
-                fitness += 0
-            for mission in mission_todo:
-                o, i = mission.split('.')
-                try:
-                    inner_module[mission.parent][inner_module[
-                        mission.parent].index(mission)].time -= time_min
-                except:
-                    for em in group_list:
-                        print(em.work_type_num, em.DNA)
-
-                if inner_module[mission.parent][inner_module[
-                        mission.parent].index(mission)].time == 0:
-                    inner_module[mission.parent].remove(mission)
-                    for em in group_list:
-                        try:
-                            for dna in em.DNA:
-                                dna_o, dna_i = dna.split('.')
-                                if dna_o == o and dna_i == i:
-                                    em.DNA.pop(em.DNA.index(dna))
-                        except:
-                            continue
-                    for mission_after in inner_module[mission.parent]:
-                        if mission in mission_after.dependence:
-                            mission_after.del_dep(mission)
-                    if len(inner_module[mission.parent]) == 0:
-                        for out in outer_module:
-                            if mission.parent in out.dependence:
-                                out.del_dep(mission.parent)
-            if len(mission_todo) == 0:
-                break
-        return fitness
 
     def calc_prob(self, fitness_list):
         transit_list = []
