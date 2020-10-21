@@ -12,6 +12,13 @@ After setting the above parameters, the model can be initialized, and the initia
 After the model is built, the iteration step is entered. Under the limit of the maximum number of iterations, the population is iterated. After the maximum number of iterations is reached, the structure of the best population and the solution procedure for the best population is returned.
 
 ## 遗传算法模型(Genetic Algorithm Model) genetic_algorithm.py
+
+遗传算法，顾名思义是基于达尔文的进化论而构建的算法思路。首先按照一定规则生成种群数量为P的种群，再种群通过特定的编码方法进行编码成“染色体”。然后在编码空间内，评估种群中个体的适应度(fitness)。再在种群中，依照不同的选择算子，例如随机竞争选择(Stochastic Tournament)、无回放随机选择(Excepted Value Selection)、轮盘赌选择(Roulette Wheel Selection)，选择出即将完成交叉的“父母”。将“父母”的“染色体”进行交叉(Cross Over)，生成新的个体；再对个体的“染色体”进行变异(Mutation)。再从种群中筛选出更优的种群进入下一轮演化过程。
+
+该过程模拟了自然界中的种群繁衍过程，筛选出更优的种群，从而获得优化问题的解。但是该算法仍存在问题：无法确保在指定演化轮次中一定能求出最有解，但是能在演化的过程中，不断的趋向最优解。
+
+该算法在种群初始化之前，先读取工序的依赖关系（其中包括外部依赖关系和内部依赖关系）。初始化种群的时候，按照外部依赖关系的长度生成一个长度为N的染色体，再建立函数检验该染色体是否满足外部依赖的要求，如果满足则添加为新的染色体。随后将多个染色体组成一个Group，即为一个个体。但是这样的生成方法存在一个问题，即便一个个体内的各染色体均满足外部依赖，但是由于内部依赖之间的工序互相限制，可能会存在某些个体最终无法完成工序。所以，又构建了一个新的函数用来检验个体是否能完成全体工序，并求出其适应度(fitness)。在选择的方法选择上，选择了类似于无回放随机选择的方法。由于染色体之间存在互相依赖的关系，“父母”染色体进行交叉会造成部分子代无法满足依赖关系。所以会在交叉后产生部分子代无法“存活”的情况。在变异阶段，将对染色体中随机两个核苷酸进行互换。但是依然会出现上述问题，所以依然会出现部分子代无法“生成”。
+
 该模型在初始化时，需要输入初始种群数目(ppl_size)，迭代次数(generation_max)，变异率(mutation_rate)，进化率(evolve_rate)，游走步长(walker_step)；在模型初始化时，同时初始化模型需要处理的“问题”，以及由问题生成对应路径(path)，以及初始化种群。
 
 在初始化“模型问题”中，先读取两个“问题”文件，分别为outer_module和inner_module。再通过上述文件，生成这个问题所有的从头到尾的路径，用以判断生成的种群是否符合问题的规则。
@@ -25,6 +32,15 @@ After the model is built, the iteration step is entered. Under the limit of the 
 最后将生成的新个体与原有个体进行结合，再在所有种群中，按照阈值限制(进化率限制)，淘汰掉部分适应度较高的个体。
 
 以上过程即是单次迭代的过程，再迭代次数限制下，将按照上述过程进行多次迭代。最终求得种群中适应度(fitness)最小的个体。该个体即为最优个体，但并不意味着这个个体就是该问题的最优解，因为遗传算法的劣势，该模型只能保证在迭代的过程中，不断的趋近最优解，但不能确保一定是最优解。
+
+Genetic algorithm, as the name suggests, is an algorithm based on Darwin's theory of evolution. Firstly, a population of P is generated according to certain rules, and then the population is coded into "chromosomes" by a specific coding method. And the fitness of the individuals in the population is evaluated in the coding space. Within the population, the individuals which are called "parents" that are about to cross over are selected according to different selection operators such as Stochastic Tournament, Accepted Value Selection and Roulette Wheel Selection.Cross over the "chromosomes" of the "parents" to create a new individual, and mutation of the "chromosomes" of the individual. The more optimal population is then selected from the population to enter the next round of evolutionary process.
+
+This process mimics the natural process of population reproduction and selects the more optimal population to obtain the solution to the optimization problem. However, this algorithm still suffers from the problem that there is no guarantee that the most promising solution will always be found in a given evolutionary round, but it will be able to move towards the optimal solution as it evolves.
+
+The algorithm reads the dependencies of the process (which include both external and internal dependencies) before the population is initialized. When the population is initialized, a chromosome of length N is generated according to the length of the external dependency, and then a function is created to check if the chromosome satisfies the external dependency, and if so, a new chromosome is added. The multiple chromosomes are then formed into a Group, which is an individual. However, there is a problem with this method of generation, even if each chromosome within an individual satisfies the external dependency, there may be some individuals that eventually fail to complete the process due to the mutual restriction of the processes between the internal dependencies. Therefore, a new function is constructed to test whether an individual can complete the entire process and to find out its fitness. In the choice of the method of selection, a method similar to the random selection without playback was chosen. Due to the interdependence of chromosomes, the crossing of "parent" chromosomes may result in some offspring not being able to satisfy the dependence. Therefore, some of the offspring may not be able to "survive" after crossing. At the mutation stage, two random nucleotides in the chromosome are swapped. However, the above problem will still occur, so some of the offspring will still not be "created".
+
+
+Translated with www.DeepL.com/Translator (free version)
 
 The model needs to enter the initial population number (ppl_size), number of iterations (generation_max), mutation rate (mutation_rate), evolution rate (evolve_rate), and walker step (walker_step) when the model is initialized, and at the same time initialize the model to handle the The "problem", the path generated from the problem, and the initialized population.
 
@@ -58,6 +74,4 @@ Employee Group Class, this class contains attributes: group ID(id), group_list, 
 读取文件即对问题的依赖进行读取，最后导入至模型中，用以模型构建以及员工初始化和检验。
 
 The read file reads the problem's dependencies and imports them into the model for model building and staff initialization and verification.
-
-
 
